@@ -1,6 +1,6 @@
 import express from "express";
-import TourController from "../controllers/tourController";
-import checkPermisson from "../middlewares/checkPermisson";
+import TourController from "../controllers/tourController.js";
+import checkPermisson from "../middlewares/checkPermisson.js";
 
 const tourRouter = express.Router();
 const tourController = new TourController();

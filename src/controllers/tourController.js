@@ -1,8 +1,8 @@
-import Tour from "../models/toursModel";
-import { getTourbyId } from "../services/tour.service";
-import processAPI from "../utils/APIFeatures";
-import errorHandler from "../middlewares/errorHandler";
-import APIError from "../utils/APIError";
+import Tour from "../models/toursModel.js";
+import { getTourbyId } from "../services/tour.service.js";
+import processAPI from "../utils/APIFeatures.js";
+import errorHandler from "../middlewares/errorHandler.js";
+import APIError from "../utils/APIError.js";
 
 export default class TourController {
   aliasTopTours = async (req, res, next) => {

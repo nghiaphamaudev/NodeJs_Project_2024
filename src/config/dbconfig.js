@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-
 export default async function connectDB(db) {
   try {
     await mongoose.connect(db);

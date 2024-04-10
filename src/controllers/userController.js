@@ -1,8 +1,8 @@
-import User from "../models/userModel";
+import User from "../models/userModel.js";
 import bycryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { loginValidate, signValidate } from "../validator/auth";
-import APIError from "../utils/APIError";
+import { loginValidate, signValidate } from "../validator/auth.js";
+import APIError from "../utils/APIError.js";
 
 export default class UserController {
   getALlUser = async (req, res, next) => {

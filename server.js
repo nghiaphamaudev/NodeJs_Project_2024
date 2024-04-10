@@ -1,12 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
-import router from "./src/routes";
-import connectDB from "./src/config/dbconfig";
-import errorHandler from "./src/middlewares/errorHandler";
+import router from "./src/routes/index.js";
+import connectDB from "./src/config/dbconfig.js";
+import errorHandler from "./src/middlewares/errorHandler.js";
 dotenv.config({ path: "./config.env" });
 
-const DB = process.env.DB_URI;
-console.log(DB);
+const DB = process.env.DB_URI || 8000;
+const PORT = process.env.PORT;
 
 const app = express();
 
@@ -20,4 +20,6 @@ app.use(
 );
 app.use("/api/v1", router);
 app.use(errorHandler);
-export const viteNodeApp = app;
+app.listen(PORT, () => {
+  console.log(`The server is listening ${PORT}...`);
+});
