@@ -1,8 +1,18 @@
 import User from "../models/userModel.js";
 import bycryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { loginValidate, signValidate } from "../validator/auth.js";
+import {
+  loginValidate,
+  signValidate,
+  updateValidate,
+} from "../validator/auth.validator.js";
 import APIError from "../utils/APIError.js";
+import {
+  checkEmailExist,
+  checkIdUserExist,
+  checkPassword,
+  validateHandler,
+} from "../services/user.service.js";
 
 export default class UserController {
   getALlUser = async (req, res, next) => {
@@ -22,10 +32,7 @@ export default class UserController {
 
   getUser = async (req, res, next) => {
     try {
-      const user = await User.findById(req.params.id);
-      if (!user) {
-        throw new APIError(400, "User not exsist!");
-      }
+      const user = await checkIdUserExist(req.params.id);
       res.status(200).json({
         status: "success",
         data: user,
@@ -37,10 +44,7 @@ export default class UserController {
 
   deleteUser = async (req, res, next) => {
     try {
-      const user = await User.findById(req.params.id);
-      if (!user) {
-        throw new APIError(400, "User not exsist!");
-      }
+      await checkIdUserExist(req.params.id);
       await User.findByIdAndDelete(req.params.id);
       return res.status(200).json({
         status: "success",
@@ -52,16 +56,37 @@ export default class UserController {
 
   updateUser = async (req, res, next) => {
     try {
-      const findUser = await User.findById(req.params.id);
-      if (!findUser) {
-        throw new APIError(400, "User not exsist!");
+      const findUser = await checkIdUserExist(req.params.id);
+      await validateHandler(updateValidate, req.body);
+      const { oldPassword, newPassword, username } = req.body;
+      const checkPass = await bycryptjs.compare(oldPassword, findUser.password);
+      if (!checkPass) {
+        throw new APIError(404, "The old password not match with password ");
       }
-      const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+      const hassPassword = await bycryptjs.hash(newPassword, 12);
+      const checkNewPass = await bycryptjs.compare(
+        newPassword,
+        findUser.password
+      );
+      if (checkNewPass) {
+        throw new APIError(
+          404,
+          "The new password must be different old password"
+        );
+      }
+      const reUser = {
+        password: hassPassword,
+        username,
+      };
+
+      await User.findByIdAndUpdate(req.params.id, reUser, {
         new: true,
+        runValidators: true,
       });
+
       res.status(200).json({
         status: "success",
-        data: user,
+        data: reUser,
       });
     } catch (error) {
       next(error);
@@ -70,25 +95,9 @@ export default class UserController {
 
   signUp = async (req, res, next) => {
     try {
-      console.log(req.body);
-      const { error } = signValidate.validate(req.body, {
-        abortEarly: false,
-      });
-      if (error) {
-        const errors = error.details.map((err) => err.message);
-        return res.status(400).json({
-          status: "failed",
-          message: errors,
-        });
-      }
-
+      await validateHandler(signValidate, req.body);
       const { username, email, password, role } = req.body;
-      const findExistEmail = await User.findOne({ email });
-      if (findExistEmail) {
-        return res.status(400).json({
-          message: "The email has already existed",
-        });
-      }
+      await checkEmailExist(email);
       const hassPassword = await bycryptjs.hash(password, 12);
       const newUser = {
         username,
@@ -105,37 +114,19 @@ export default class UserController {
         },
       });
     } catch (error) {
-      res.status(400).json({
-        status: "failed",
-        message: error.message,
-      });
+      next(error);
     }
   };
 
   login = async (req, res, next) => {
     try {
-      const { error } = loginValidate.validate(req.body, {
-        abortEarly: false,
-      });
-      if (error) {
-        const errors = error.details.map((err) => err.message);
-        return res.status(400).json({
-          status: "failed",
-          message: errors,
-        });
-      }
+      await validateHandler(loginValidate, req.body);
       const { email, password } = req.body;
       const findExistEmail = await User.findOne({ email });
       if (!findExistEmail) {
         throw new APIError(400, "The account not exist!");
       }
-      const checkPass = await bycryptjs.compare(
-        password,
-        findExistEmail.password
-      );
-      if (!checkPass) {
-        throw new APIError(400, "Pass word not match");
-      }
+      await checkPassword(password, findExistEmail.password);
       const token = jwt.sign(
         { data: findExistEmail },
         process.env.SECRET_TOKEN,

@@ -1,8 +1,6 @@
 import Tour from "../models/toursModel.js";
-import { getTourbyId } from "../services/tour.service.js";
+import { checkIdTourExist, getTourbyId } from "../services/tour.service.js";
 import processAPI from "../utils/APIFeatures.js";
-import errorHandler from "../middlewares/errorHandler.js";
-import APIError from "../utils/APIError.js";
 
 export default class TourController {
   aliasTopTours = async (req, res, next) => {
@@ -36,14 +34,11 @@ export default class TourController {
   };
   getTour = async (req, res, next) => {
     try {
-      const findTour = await getTourbyId(req.params.id);
-      if (findTour) {
-        return res.status(200).json({
-          status: "success",
-          data: findTour,
-        });
-      }
-      throw new APIError(404, "ID not exist!");
+      const findTour = await checkIdTourExist(req.params.id);
+      return res.status(200).json({
+        status: "success",
+        data: findTour,
+      });
     } catch (error) {
       next(error);
     }
@@ -64,31 +59,25 @@ export default class TourController {
   };
   deleteTour = async (req, res, next) => {
     try {
-      const findTour = await getTourbyId(req.params.id);
-      if (findTour) {
-        await Tour.findByIdAndDelete(req.params.id);
-        res.status(200).json({
-          status: "success",
-        });
-      }
-      throw new APIError(404, "ID not exist!");
+      await checkIdTourExist(req.params.id);
+      await Tour.findByIdAndDelete(req.params.id);
+      res.status(200).json({
+        status: "success",
+      });
     } catch (error) {
       next(error);
     }
   };
   updateTour = async (req, res, next) => {
     try {
-      const findTour = await getTourbyId(req.params.id);
-      if (findTour) {
-        const tour = await Tour.findOneAndUpdate(req.params.id, req.body, {
-          new: true,
-        });
-        return res.status(200).json({
-          status: "success",
-          data: tour,
-        });
-      }
-      throw new APIError(400, "ID not exist");
+      await checkIdTourExist(req.params.id);
+      const tour = await Tour.findOneAndUpdate(req.params.id, req.body, {
+        new: true,
+      });
+      return res.status(200).json({
+        status: "success",
+        data: tour,
+      });
     } catch (error) {
       next(error);
     }

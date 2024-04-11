@@ -8,10 +8,10 @@ const userController = new UserController();
 userRouter.route("/signup").post(userController.signUp);
 userRouter.route("/login").post(userController.login);
 
-userRouter.route("/").get(userController.getALlUser);
+userRouter.route("/").get(checkPermisson, userController.getALlUser);
 userRouter
   .route("/:id")
-  .get(checkPermisson, userController.getUser)
+  .get(userController.getUser)
   .delete(checkPermisson, userController.deleteUser)
   .patch(checkPermisson, userController.updateUser);
 

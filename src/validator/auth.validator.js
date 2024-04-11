@@ -33,3 +33,34 @@ export const loginValidate = Joi.object({
     "any.required": "The {{#label}} required",
   }),
 });
+export const updateValidate = Joi.object({
+  oldPassword: Joi.string()
+    .lowercase()
+    .empty()
+    .required()
+    .min(6)
+    .max(12)
+    .messages({
+      "string.empty": "The {{#label}} cannot be left blank",
+      "any.required": "The {{#label}} required",
+      "string.min": "The {{#label}} minimum {#min} letter ",
+      "string.max": "The {{#label}} maxium {#max} letter",
+    }),
+  newPassword: Joi.string()
+    .lowercase()
+    .empty()
+    .required()
+    .min(6)
+    .max(12)
+    .messages({
+      "string.empty": "The {{#label}} cannot be left blank",
+      "any.required": "The {{#label}} required",
+      "string.min": "The {{#label}} minimum {#min} letter ",
+      "string.max": "The {{#label}} maxium {#max} letter",
+    }),
+  username: Joi.string().empty().required().min(4).messages({
+    "string.empty": "The {{#label}} cannot be left blank",
+    "any.required": "The {{#label}} required",
+    "string.min": "The {{#label}} minimum {#min} letter ",
+  }),
+});

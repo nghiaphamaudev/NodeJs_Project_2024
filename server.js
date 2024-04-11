@@ -1,9 +1,15 @@
 import express from "express";
 import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
+import fs from "fs";
+import YAML from "yaml";
 import router from "./src/routes/index.js";
 import connectDB from "./src/config/dbconfig.js";
 import errorHandler from "./src/middlewares/errorHandler.js";
 dotenv.config({ path: "./config.env" });
+
+const file = fs.readFileSync("./api-docs.yaml", "utf8");
+const swaggerDocument = YAML.parse(file);
 
 const DB = process.env.DB_URI || 8000;
 const PORT = process.env.PORT;
@@ -20,6 +26,7 @@ app.use(
 );
 app.use("/api/v1", router);
 app.use(errorHandler);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.listen(PORT, () => {
   console.log(`The server is listening ${PORT}...`);
 });
