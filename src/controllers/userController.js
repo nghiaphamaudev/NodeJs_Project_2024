@@ -11,9 +11,9 @@ import {
   checkEmailExist,
   checkIdUserExist,
   checkPassword,
-  validateHandler,
 } from "../services/user.service.js";
 
+import { validateHandler } from "../utils/validateHandler.js";
 export default class UserController {
   getALlUser = async (req, res, next) => {
     try {

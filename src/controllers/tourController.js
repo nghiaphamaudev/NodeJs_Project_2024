@@ -1,5 +1,5 @@
 import Tour from "../models/toursModel.js";
-import { checkIdTourExist, getTourbyId } from "../services/tour.service.js";
+import { checkIdTourExist } from "../services/tour.service.js";
 import processAPI from "../utils/APIFeatures.js";
 
 export default class TourController {
