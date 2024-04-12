@@ -11,14 +11,15 @@ const checkPermisson = async (req, res, next) => {
       });
     }
     const data = jwt.verify(token, process.env.SECRET_TOKEN);
-    console.log(data);
+
     if (!data) {
       return res.status(400).json({
         status: "failed",
         message: "Not Authorization",
       });
     }
-
+    console.log(data);
+    console.log(data.data._id);
     const findUser = await User.findById(data.data._id);
     if (!findUser) {
       return res.status(400).json({
