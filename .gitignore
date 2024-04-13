@@ -1,1 +1,3 @@
-node_modules
+#Cancel push node_modules
+node_modules 
+*.env
