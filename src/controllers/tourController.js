@@ -1,6 +1,7 @@
 import Tour from "../models/toursModel.js";
-import { checkIdTourExist } from "../services/tour.service.js";
+import AppError from "../utils/APIError.js";
 import processAPI from "../utils/APIFeatures.js";
+import catchAsync from "../utils/catchAsync.js";
 
 export default class TourController {
   aliasTopTours = async (req, res, next) => {
@@ -32,86 +33,69 @@ export default class TourController {
       });
     }
   };
-  getTour = async (req, res, next) => {
-    try {
-      const findTour = await checkIdTourExist(req.params.id);
-      return res.status(200).json({
-        status: "success",
-        data: findTour,
-      });
-    } catch (error) {
-      next(error);
+  getTour = catchAsync(async (req, res, next) => {
+    const tour = await Tour.findById(req.params.id);
+    if (!tour) {
+      return next(new AppError("The tour not found with that ID"));
     }
-  };
-  createTour = async (req, res, next) => {
-    try {
-      const tour = await Tour.create(req.body);
-      res.status(200).json({
-        status: "success",
-        data: tour,
-      });
-    } catch (error) {
-      res.status(400).json({
-        status: "failed",
-        message: error.message,
-      });
-    }
-  };
-  deleteTour = async (req, res, next) => {
-    try {
-      await checkIdTourExist(req.params.id);
-      await Tour.findByIdAndDelete(req.params.id);
-      res.status(200).json({
-        status: "success",
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-  updateTour = async (req, res, next) => {
-    try {
-      await checkIdTourExist(req.params.id);
-      const tour = await Tour.findOneAndUpdate(req.params.id, req.body, {
-        new: true,
-      });
-      return res.status(200).json({
-        status: "success",
-        data: tour,
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
+    return res.status(200).json({
+      status: "success",
+      data: tour,
+    });
+  });
+  createTour = catchAsync(async (req, res, next) => {
+    const tour = await Tour.create(req.body);
+    res.status(200).json({
+      status: "success",
+      data: tour,
+    });
+  });
 
-  getToursStats = async (req, res, next) => {
-    try {
-      const stats = await Tour.aggregate([
-        { $match: { ratingsAverage: { $gte: 4.7 } } },
-        {
-          $group: {
-            _id: { $toUpper: "$name" },
-            avgRating: { $avg: "$ratingsAverage" },
-            avgPrice: { $avg: "$price" },
-            minPrice: { $min: "$price" },
-            maxPrice: { $max: "$price" },
-          },
-        },
-        {
-          $sort: { avgPrice: 1 },
-        },
-      ]);
-      res.status(200).json({
-        status: "success",
-        quantity: stats.length,
-        data: stats,
-      });
-    } catch (error) {
-      res.status(400).json({
-        status: "failed",
-        message: error.message,
-      });
+  deleteTour = catchAsync(async (req, res, next) => {
+    const tour = await Tour.findByIdAndDelete(req.params.id);
+    if (!tour) {
+      return next(new AppError("The tour not found with that ID"));
     }
-  };
+    res.status(200).json({
+      status: "success",
+    });
+  });
+
+  updateTour = catchAsync(async (req, res, next) => {
+    const tour = await Tour.findOneAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    if (!tour) {
+      return next(new AppError("The tour not found with that ID"));
+    }
+    res.status(200).json({
+      status: "success",
+      data: tour,
+    });
+  });
+
+  getToursStats = catchAsync(async (req, res, next) => {
+    const stats = await Tour.aggregate([
+      { $match: { ratingsAverage: { $gte: 4.7 } } },
+      {
+        $group: {
+          _id: { $toUpper: "$name" },
+          avgRating: { $avg: "$ratingsAverage" },
+          avgPrice: { $avg: "$price" },
+          minPrice: { $min: "$price" },
+          maxPrice: { $max: "$price" },
+        },
+      },
+      {
+        $sort: { avgPrice: 1 },
+      },
+    ]);
+    res.status(200).json({
+      status: "success",
+      quantity: stats.length,
+      data: stats,
+    });
+  });
 
   getMonthlyPlan = async (req, res, next) => {
     try {
